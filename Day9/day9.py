@@ -1,3 +1,5 @@
+import heapq
+
 def dayNine():
     arr = []
     with open("Day9/9_2.txt") as file:
@@ -40,10 +42,17 @@ def dayNine():
             res += int(arr[i])*i
     return res
 
-#notfinished
 def dayNine2():
+
+    def calcRes(arr):
+        res = 0
+        for i in range(len(arr)):
+            if arr[i] != '.':
+                res += int(arr[i])*i
+        return res
+
     arr = []
-    with open("Day9/9.txt") as file:
+    with open("Day9/9_2.txt") as file:
         id = 0
         isFile = True
         while 1:
@@ -61,45 +70,59 @@ def dayNine2():
                     for _ in range(int(char)):
                         arr.append('.')
 
-    #WTF vielleicht mit hashmap die länge von blöcken oder jedesmal mit n^2 den richtigen block suchen??
-    #nur den block drunter ändern
-    i,j = 0,len(arr)-1
-    free = 0
-    c = ''
-    use = 0
-    while i < j:
-        if arr[i] == '.':
-            free += 1
-            i += 1
-        elif arr[j] != '.' and c == '':
-            c = arr[j]
-            use = 1
-            j -= 1
-        elif arr[j] != '.' and c == arr[j]:
-            use += 1
-            j -= 1        
-        elif arr[i] != '.' and use <= free and free > 0 and use > 0:
-            arr[i-free],arr[j+use] = arr[j+use],arr[i-free]
-            free -= 1
-            use -= 1
-        elif arr[j] == '.':
-            j -= 1
-        elif arr[i] != '.' and free == 0:
-            i += 1
-        else:
-            free = 0
-            use = 0
-            i+=1
-            j-=1
-
-    res = 0
+    arrFree = []
+    curr = 0
+    index = 0
     for i in range(len(arr)):
-        if arr[i] == '.':
-            break
-        else:
-            res += int(arr[i])*i
-    return res
+        if curr == 0 and arr[i] == '.':
+            index = i
+            curr = 1
+        elif curr > 0 and arr[i] == '.':
+            curr += 1
+        elif arr[i] != '.' and curr > 0:
+            heapq.heappush(arrFree, (index,curr) )
+            curr = 0        
+    if arr[-1] == '.':
+        heapq.heappush(arrFree, (index,curr) )
 
+    l,r = len(arr)-1,len(arr)-1
+    while 0 <= l and 0 <= r:
+        if l == r and arr[r] == '.':
+            l-=1
+            r-=1
+        elif l == r and arr[r] != '.':
+            toMove = 0
+            while arr[l] == arr[r]:
+                toMove += 1
+                l-=1
+
+            # r nach links moven bis r==l and dabei die elemente verschieben
+            temp = []
+            while arrFree:
+                index,space = heapq.heappop(arrFree)
+
+                if l < index:
+                    temp.append( (index,space) )
+                    break
+                elif toMove > space:
+                    temp.append( (index,space) )
+                elif toMove <= space:
+                    moved = 0
+                    while toMove > 0:
+                        arr[r],arr[index] = arr[index],arr[r]
+                        index+=1
+                        r-=1
+                        moved += 1
+                        toMove -= 1
+                    if moved > 0:
+                        heapq.heappush(arrFree, (index,space-moved) )
+                    break
+            
+            for v in temp:
+                heapq.heappush(arrFree,v)
+            r = l
+
+    return calcRes(arr)
 
 def main():
     print("Hallo")
