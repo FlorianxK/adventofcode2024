@@ -1,7 +1,8 @@
+from collections import deque
+
 def dayTen():
-    with open("Day10/10_1.txt") as file:
+    with open("Day10/10_2.txt") as file:
         arr = []
-        dir = [(0,1),(1,0),(0,-1),(-1,0)]
         n = 0
         for line in file:
             content = line.rstrip()
@@ -11,40 +12,74 @@ def dayTen():
             arr.append('#'+content+'#')
         arr.append('#'*n)
 
-    for a in arr:
-        print(a)
+    def bfs(i,j):
+        q = deque( [(i,j)] )
+        visited = set()
+        visited.add( (i,j) )
+        peaks = 0
+        while q:
+            i2,j2 = q.popleft()
+            for ni,nj in [ (i2-1,j2),(i2+1,j2),(i2,j2-1),(i2,j2+1) ]:
+                if arr[ni][nj] == '#' or arr[ni][nj] == '.':
+                    continue
+                elif int(arr[ni][nj]) != int(arr[i2][j2])+1:
+                    continue
+                elif (ni,nj) in visited:
+                    continue
 
-    def dfs(i,j,num):
-        if arr[i][j] == '#' or ( arr[i+1][j] != str(num+1) and arr[i-1][j] != str(num+1) and arr[i][j+1] != str(num+1) and arr[i][j-1] != str(num+1) ):
-            return 0
-        elif arr[i][j] == '9' and num == 9:
-            return 1
-        elif arr[i+1][j] == str(num+1):
-            dfs(i+1,j,num+1)
-
-        elif arr[i-1][j] == str(num+1):
-            dfs(i-1,j,num+1)
-
-        elif arr[i][j+1] == str(num+1):
-            dfs(i,j+1,num+1)
-
-        elif arr[i][j-1] == str(num+1):
-            dfs(i,j-1,num+1)
-
-        
-
-        return dfs(i+1,j,num+1) + dfs(i-1,j,num+1) + dfs(i,j+1,num+1) + dfs(i,j-1,num+1)
+                visited.add( (ni,nj) )
+                if arr[ni][nj] == '9':
+                    peaks += 1
+                else:
+                    q.append( (ni,nj) )
+        return peaks
 
     res = 0
     for i in range(1,len(arr)-1):
         for j in range(1,len(arr[0])-1):
             if arr[i][j] == '0':
-                res += dfs(i,j,0)
-
+                res += bfs(i,j)
     return res
 
 def dayTen2():
-    pass
+    with open("Day10/10_2.txt") as file:
+        arr = []
+        n = 0
+        for line in file:
+            content = line.rstrip()
+            if len(arr) == 0:
+                n = len(content)+2
+                arr.append('#'*n)
+            arr.append('#'+content+'#')
+        arr.append('#'*n)
+
+    def bfs(i,j):
+        q = deque( [(i,j)] )
+        visited = { (i,j): 1 }
+        peaks = 0
+        while q:
+            i2,j2 = q.popleft()
+            if arr[i2][j2] == '9':
+                peaks += visited[(i2,j2)]
+            for ni,nj in [ (i2-1,j2),(i2+1,j2),(i2,j2-1),(i2,j2+1) ]:
+                if arr[ni][nj] == '#' or arr[ni][nj] == '.':
+                    continue
+                elif int(arr[ni][nj]) != int(arr[i2][j2])+1:
+                    continue
+                elif (ni,nj) in visited:
+                    visited[ (ni,nj) ] += visited[ (i2,j2) ]
+                    continue
+
+                visited[ (ni,nj) ] = visited[ (i2,j2) ]
+                q.append( (ni,nj) )
+        return peaks
+
+    res = 0
+    for i in range(1,len(arr)-1):
+        for j in range(1,len(arr[0])-1):
+            if arr[i][j] == '0':
+                res += bfs(i,j)
+    return res
 
 def main():
     print("Hallo")
