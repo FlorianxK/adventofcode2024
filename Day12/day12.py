@@ -6,15 +6,13 @@ def dayTwelve():
     dir = [(-1,0), (1,0), (0,-1), (0,1)]
 
     #read
-    with open("Day12/12.txt") as file:
+    with open("Day12/12_3.txt") as file:
         for line in file:
             content = line.rstrip()
             if len(arr) == 0:
                 arr.append('#'*(len(content)+2))
             arr.append('#'+content+'#')
         arr.append('#'*(len(content)+2))
-    for a in arr:
-        print(a)
     
     #return area*peri for group
     def bfs(i,j):
@@ -46,23 +44,20 @@ def dayTwelve():
                 res += bfs(i,j)
     return res
 
-#notfinished
 def dayTwelve2():
     visit = set()
     arr = []
     dir = [(-1,0), (1,0), (0,-1), (0,1)]
 
     #read
-    with open("Day12/12.txt") as file:
+    with open("Day12/12_3.txt") as file:
         for line in file:
             content = line.rstrip()
             if len(arr) == 0:
                 arr.append('#'*(len(content)+2))
             arr.append('#'+content+'#')
         arr.append('#'*(len(content)+2))
-    for a in arr:
-        print(a)
-    
+
     #return area*side for group
     def bfs(i,j):
         d = deque([(i,j)])
@@ -71,7 +66,7 @@ def dayTwelve2():
         side = 0
         group = set()
         group.add((i,j))
-        #nur die seiten zählen nicht perimeter
+        
         while d:
             curr = d.popleft()
             area += 1
@@ -84,15 +79,32 @@ def dayTwelve2():
                     if tmp not in visit:
                         d.append(tmp)
                         visit.add(tmp)
-
                         group.add(tmp)
         
-        print(group)
-        #mario kart einmal rumfahren
-        #for x,y in group:
-        #    print()
+        up,down,left,right = (set() for _ in range(4))
+        for x,y in group:
+            if (x-1,y) not in group:
+                up.add( (x,y) )
+            if (x+1,y) not in group:
+                down.add( (x,y) )
+            if (x,y-1) not in group:
+                left.add( (x,y) )
+            if (x,y+1) not in group:
+                right.add( (x,y) )
 
-        print(str(area) + " and " + str(side))
+        for (x,y) in up:
+            if (x,y) in left: side += 1
+            if (x,y) in right: side += 1
+            if (x-1,y-1) in right and (x,y) not in left: side += 1
+            if (x-1,y+1) in left and (x,y) not in right: side += 1
+
+        for (x,y) in down:
+            if (x,y) in left: side += 1
+            if (x,y) in right: side += 1
+            if (x+1,y-1) in right and (x,y) not in left: side += 1
+            if (x+1,y+1) in left and (x,y) not in right: side += 1
+
+        #print(str(area) + " and " + str(side))
         return area*side
 
     m,n = len(arr),len(arr[0])
@@ -101,7 +113,6 @@ def dayTwelve2():
         for j in range(1,n-1):
             if (i,j) not in visit:
                 tmp = bfs(i,j)
-                #print(tmp)
                 res += tmp
     return res
 

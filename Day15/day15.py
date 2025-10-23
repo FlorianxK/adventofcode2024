@@ -75,7 +75,7 @@ def dayFifteen2():
     arr = []
     robot = [0,0]
     dir = { '^': (-1,0), 'v': (1,0), '>': (0,1), '<': (0,-1) }
-    with open("Day15/15_3.txt", 'r') as file:
+    with open("Day15/15_1.txt", 'r') as file:
         firstMode = True
         for line in file:
             if line == '\n':
@@ -115,14 +115,20 @@ def dayFifteen2():
                     #moves gegen box
                     if arr[ni][nj] == '[' or arr[ni][nj] == ']':
                         if i == 0: #links und rechts
-                            stack = ['@',']','[']
+                            if arr[ni][nj] == '[':
+                                stack = ['@','[',']']
+                            else:
+                                stack = ['@',']','[']
                             while stack:
                                 nj = 2*j+nj
                                 if arr[ni][nj] == '#':
                                     break 
-                                elif arr[ni][nj] == '[' or arr[ni][nj] == ']':
-                                    stack.append(']')
+                                elif arr[ni][nj] == '[':
                                     stack.append('[')
+                                    stack.append(']')
+                                elif arr[ni][nj] == ']':
+                                    stack.append(']')
+                                    stack.append('[')                                
                                 elif arr[ni][nj] == '.':
                                     bj = nj
                                     while stack:
@@ -140,7 +146,7 @@ def dayFifteen2():
                             elif arr[ni][nj] == ']':
                                 q.append( [(ni,nj-1),(ni,nj)] )
 
-                            allLevel = [q[0]]
+                            allLevel = [ [q[0]] ]
                             while q:
                                 tempLevel = q.copy()
                                 nextLevel = deque()
@@ -161,33 +167,49 @@ def dayFifteen2():
                                                 nextLevel.append( newPair )
                                 if nextLevel:
                                     q = nextLevel
-                                    allLevel.extend(nextLevel)
+                                    allLevel.append(list(nextLevel))
                                 else:
+                                    q.clear()
+                            #check first level if free move all one +i and robot 
+                            blocked = False
+                            for l,r in allLevel[-1]:
+                                if arr[l[0]+i][l[1]] == '#' or arr[r[0]+i][r[1]] == '#':
                                     blocked = True
                                     break
-                            print(allLevel)
-                            #von hinten durchgehen und soweit in richtung v1+i bis blocked
-                            if not blocked:
-                                pass
+                            
+                            if blocked == False:
+                                for level in reversed(allLevel):
+                                    for l,r in level:
+                                        l1,l2 = l
+                                        r1,r2 = r
+                                        arr[l1][l2] = '.'
+                                        arr[l1+i][l2] = '['
+                                        arr[r1][r2] = '.'
+                                        arr[r1+i][r2] = ']'
+
+                                a,b = robot
+                                arr[a][b] = '.'
+                                a += i
+                                arr[a][b] = '@'
+                                robot = [a,b]
 
                     print(f"Move {move}:")
                     for a in arr:
                         print(''.join(a))
                     
-    '''
+
     print("Final field:")
     for a in arr:
         print(''.join(a))
 
     #count boxes
     res = 0
-    
     for i in range(1,len(arr)-1):
         for j in range(1,len(arr[0])-1):
-            if arr[i][j] == 'O':
+            if arr[i][j] == '[':
                 res += 100 * i + j
-    '''
-    return 0
+
+    return res
     
 def main():
     print("Hallo")
