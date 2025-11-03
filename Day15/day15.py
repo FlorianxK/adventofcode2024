@@ -1,4 +1,3 @@
-from collections import deque
 from typing import *
 
 def dayFifteen():
@@ -11,9 +10,6 @@ def dayFifteen():
         for line in file:
             if line == '\n':
                 firstMode = False
-                print("Initial state:")
-                for a in arr:
-                    print(''.join(a))
                 continue
 
             line = line.rstrip()
@@ -26,41 +22,34 @@ def dayFifteen():
                 arr.append(temp)
             else:
                 for move in line:
-                    i,j = dir[move]
+                    di,dj = dir[move]
                     ri,rj = robot
-                    ni,nj = i+ri,j+rj
-
-                    #moves auf ein freies feld
-                    if arr[ni][nj] =='.':
-                        arr[ri][rj] = '.'
-                        arr[ni][nj] = '@'
-                        robot = [ni,nj]
-
-                    #moves gegen box
-                    if arr[ni][nj] == 'O':
-                        stack = ['@','O']
-                        while stack:
-                            ni,nj = i+ni,j+nj
-                            if arr[ni][nj] == '#':
-                                break 
-                            elif arr[ni][nj] == 'O':
-                                stack.append('O')
-                            elif arr[ni][nj] == '.':
-                                bi,bj = ni,nj
-                                while stack:
-                                    arr[bi][bj] = stack.pop()
-                                    bi,bj = bi-i,bj-j
-
-                                arr[ri][rj] = '.'
-                                robot = [bi+i,bj+j]
-                    '''
-                    print(f"Move {move}:")
-                    for a in arr:
-                        print(''.join(a))
-                    '''
-    print("Final field:")
-    for a in arr:
-        print(''.join(a))
+                    do_move = True
+                    to_move = [(ri,rj)]
+                    counter = 0
+                    while counter < len(to_move):
+                        ci,cj = to_move[counter]
+                        counter += 1
+                        ni,nj = di+ci,dj+cj
+                        if (ni,nj) in to_move:
+                            continue
+                        if arr[ni][nj] == '#':
+                            do_move = False
+                            break
+                        if arr[ni][nj] == '.':
+                            continue
+                        if arr[ni][nj] == 'O':
+                            to_move.append((ni,nj))
+                        else:
+                            assert False
+                    
+                    if do_move:
+                        grid_copy = [list(row) for row in arr]
+                        robot = (ri+di,rj+dj)
+                        for rr,cc in to_move:
+                            arr[rr][cc] = '.'
+                        for rr,cc in to_move:
+                            arr[rr+di][cc+dj] = grid_copy[rr][cc]
 
     #count boxes
     res = 0
@@ -75,14 +64,11 @@ def dayFifteen2():
     arr = []
     robot = [0,0]
     dir = { '^': (-1,0), 'v': (1,0), '>': (0,1), '<': (0,-1) }
-    with open("Day15/15_1.txt", 'r') as file:
+    with open("Day15/15_2.txt", 'r') as file:
         firstMode = True
         for line in file:
             if line == '\n':
                 firstMode = False
-                print("Initial state:")
-                for a in arr:
-                    print(''.join(a))
                 continue
 
             line = line.rstrip()
@@ -102,105 +88,37 @@ def dayFifteen2():
                 arr.append(temp)
             else:
                 for move in line:
-                    i,j = dir[move]
+                    di,dj = dir[move]
                     ri,rj = robot
-                    ni,nj = i+ri,j+rj
+                    do_move = True
+                    to_move = [(ri,rj)]
+                    counter = 0
+                    while counter < len(to_move):
+                        ci,cj = to_move[counter]
+                        counter += 1
+                        ni,nj = di+ci,dj+cj
+                        if (ni,nj) in to_move:
+                            continue
+                        if arr[ni][nj] == '#':
+                            do_move = False
+                            break
+                        if arr[ni][nj] == '.':
+                            continue
 
-                    #moves auf ein freies feld
-                    if arr[ni][nj] =='.':
-                        arr[ri][rj] = '.'
-                        arr[ni][nj] = '@'
-                        robot = [ni,nj]
+                        if arr[ni][nj] == '[':
+                            to_move.extend([(ni,nj),(ni,nj+1)])
+                        elif arr[ni][nj] == ']':
+                            to_move.extend([(ni,nj),(ni,nj-1)])
+                        else:
+                            assert False
 
-                    #moves gegen box
-                    if arr[ni][nj] == '[' or arr[ni][nj] == ']':
-                        if i == 0: #links und rechts
-                            if arr[ni][nj] == '[':
-                                stack = ['@','[',']']
-                            else:
-                                stack = ['@',']','[']
-                            while stack:
-                                nj = 2*j+nj
-                                if arr[ni][nj] == '#':
-                                    break 
-                                elif arr[ni][nj] == '[':
-                                    stack.append('[')
-                                    stack.append(']')
-                                elif arr[ni][nj] == ']':
-                                    stack.append(']')
-                                    stack.append('[')                                
-                                elif arr[ni][nj] == '.':
-                                    bj = nj
-                                    while stack:
-                                        arr[ni][bj] = stack.pop()
-                                        bj = bj-j
-
-                                    arr[ri][rj] = '.'
-                                    robot = [ni,bj+j]
-
-                        elif j == 0: #oben und unten
-                            blocked = False
-                            q = deque()
-                            if arr[ni][nj] == '[':
-                                q.append( [(ni,nj),(ni,nj+1)] )
-                            elif arr[ni][nj] == ']':
-                                q.append( [(ni,nj-1),(ni,nj)] )
-
-                            allLevel = [ [q[0]] ]
-                            while q:
-                                tempLevel = q.copy()
-                                nextLevel = deque()
-                                while tempLevel:
-                                    curr = tempLevel.popleft()
-                                    for v1,v2 in curr:
-                                        v1 += i
-                                        if arr[v1][v2] == '#':
-                                            nextLevel.clear()
-                                            break
-                                        elif arr[v1][v2] == '[' and arr[v1][v2+1] == ']':
-                                            newPair = [(v1,v2),(v1,v2+1)]
-                                            if newPair not in nextLevel:
-                                                nextLevel.append( newPair )
-                                        elif arr[v1][v2-1] == '[' and arr[v1][v2] == ']':
-                                            newPair = [(v1,v2-1),(v1,v2)]
-                                            if newPair not in nextLevel:
-                                                nextLevel.append( newPair )
-                                if nextLevel:
-                                    q = nextLevel
-                                    allLevel.append(list(nextLevel))
-                                else:
-                                    q.clear()
-                            #check first level if free move all one +i and robot 
-                            blocked = False
-                            for l,r in allLevel[-1]:
-                                if arr[l[0]+i][l[1]] == '#' or arr[r[0]+i][r[1]] == '#':
-                                    blocked = True
-                                    break
-                            
-                            if blocked == False:
-                                for level in reversed(allLevel):
-                                    for l,r in level:
-                                        l1,l2 = l
-                                        r1,r2 = r
-                                        arr[l1][l2] = '.'
-                                        arr[l1+i][l2] = '['
-                                        arr[r1][r2] = '.'
-                                        arr[r1+i][r2] = ']'
-
-                                a,b = robot
-                                arr[a][b] = '.'
-                                a += i
-                                arr[a][b] = '@'
-                                robot = [a,b]
-
-                    print(f"Move {move}:")
-                    for a in arr:
-                        print(''.join(a))
-                    
-
-    print("Final field:")
-    for a in arr:
-        print(''.join(a))
+                    if do_move:
+                        grid_copy = [list(row) for row in arr]
+                        robot = (ri+di,rj+dj)
+                        for rr,cc in to_move:
+                            arr[rr][cc] = '.'
+                        for rr,cc in to_move:
+                            arr[rr+di][cc+dj] = grid_copy[rr][cc]
 
     #count boxes
     res = 0
@@ -210,7 +128,7 @@ def dayFifteen2():
                 res += 100 * i + j
 
     return res
-    
+
 def main():
     print("Hallo")
     print(dayFifteen(), "ist die Lösung von Teil 1")
